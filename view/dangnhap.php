@@ -9,13 +9,18 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <link rel="stylesheet" href="view/css/dangnhap.css">
     <title>Đăng nhập</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
 </head>
+
 <body>
     <?php
     include_once("message.php");
     ?>
     <div id="login">
-        <a href="index.php"><h3 class="text-center text-white pt-5">Quản lý vi phạm giao thông</h3></a>        
+        <a href="index.php">
+            <h3 class="text-center text-white pt-5">Quản lý vi phạm giao thông</h3>
+        </a>
         <div class="container">
             <div id="login-row" class="row justify-content-center align-items-center">
                 <div id="login-column" class="col-md-6">
@@ -29,6 +34,9 @@
                             <div class="form-group">
                                 <label for="password" class="text-info">Mật Khẩu:</label><br>
                                 <input type="password" name="password" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <div class="g-recaptcha" data-sitekey="6LepYN8ZAAAAACBKoMBrOY7FgMYQyrdPMnlZtK42"></div>
                             </div>
                             <div class="form-group">
                                 <input type="submit" name="dnsubmit" class="btn btn-info btn-md" value="Đăng nhập">

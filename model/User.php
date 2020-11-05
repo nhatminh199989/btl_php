@@ -46,23 +46,39 @@ class User
     public function dangnhapbe()
     {
         //check login
-        if (isset($_POST['dnsubmit'])) {
-            if (isset($_POST['username']) && $_POST['password']) {
-                if (!empty($_POST['username']) && !empty($_POST['password'])) {
-                    $username = $_POST['username'];
-                    $password = $_POST['password'];
-                    $hashed_password = NULL;
-                    $sql = "SELECT username,password from users WHERE username = ?";
-                    $stmt = DB::mysqli()->prepare($sql);
-                    $stmt->bind_param("s", $username);
-                    $stmt->execute();
-                    $stmt->store_result();
-                    if ($stmt->num_rows() == 1) {
-                        $stmt->bind_result($username, $hashed_password);
-                        $stmt->fetch();
-                        if (password_verify($password, $hashed_password)) {
-                            $_SESSION['login'] = "true";
-                            return true;
+        if (isset($_POST['g-recaptcha-response'])) {
+            $captcha = $_POST['g-recaptcha-response'];
+        }
+        if ($captcha) {
+            $secretKey = "6LepYN8ZAAAAAK7sMvVjOmoR0IWG3X_YvLaKHc7y";
+            //$ip = $_SERVER['REMOTE_ADDR'];
+            $url = 'https://www.google.com/recaptcha/api/siteverify?secret=' . urlencode($secretKey) .  '&response=' . urlencode($captcha);
+            $response = file_get_contents($url);
+            $responseKeys = json_decode($response, true);
+            if ($responseKeys["success"]) {
+                if (isset($_POST['dnsubmit'])) {
+                    if (isset($_POST['username']) && $_POST['password']) {
+                        if (!empty($_POST['username']) && !empty($_POST['password'])) {
+                            $username = $_POST['username'];
+                            $password = $_POST['password'];
+                            $hashed_password = NULL;
+                            $sql = "SELECT username,password from users WHERE username = ?";
+                            $stmt = DB::mysqli()->prepare($sql);
+                            $stmt->bind_param("s", $username);
+                            $stmt->execute();
+                            $stmt->store_result();
+                            if ($stmt->num_rows() == 1) {
+                                $stmt->bind_result($username, $hashed_password);
+                                $stmt->fetch();
+                                if (password_verify($password, $hashed_password)) {
+                                    $_SESSION['login'] = "true";
+                                    return true;
+                                }
+                            } else {
+                                return false;
+                            }
+                        } else {
+                            return false;
                         }
                     } else {
                         return false;
