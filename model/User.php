@@ -94,6 +94,107 @@ class User
         }
     }
 
+    public function sendWarningEmail($username,$txt){
+        $sql = "SELECT email FROM users WHERE username = ?";
+        $stmt = DB::mysqli()->prepare($sql);
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $stmt->store_result();
+        if ($stmt->num_rows() == 1) {
+            $stmt->bind_result($email);
+            $stmt->fetch();
+            $stmt->close();          
+
+            //SEND EMAIL
+            $receiver = $email;
+            $subject = "Cảnh báo: Đây có phải là bạn đang cố gắng đăng nhập";            
+            $header  = 'MIME-Version: 1.0' . "\r\n";
+            $header .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
+            $header .= "From: Nhatminh";
+            mail($receiver, $subject, $txt, $header);
+        } 
+    }
+
+    public function sendOTP()
+    {
+        if (isset($_POST['username'])) {
+            $username = $_POST['username'];
+            $sql = "SELECT email FROM users WHERE username = ?";
+            $stmt = DB::mysqli()->prepare($sql);
+            $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $stmt->store_result();
+            if ($stmt->num_rows() == 1) {
+                $stmt->bind_result($email);
+                $stmt->fetch();
+                $stmt->close();
+                //GEN OTP
+                $otp = rand(100000, 999999);
+                $is_used = 0;
+                //INSERT OTP DB
+                $sql = "INSERT INTO otp(otp,username,is_used,created_at) VALUES (?,?,?,NOW())";
+                $stmt = DB::mysqli()->prepare($sql);
+                $stmt->bind_param("sss", $otp, $username, $is_used);
+                $stmt->execute();
+
+                //SEND EMAIL
+                $receiver = $email;
+                $subject = "OTP for login";
+                $content = "<h1>This is your code to login:  <em>$otp </em> </h1>";
+                $header  = 'MIME-Version: 1.0' . "\r\n";
+                $header .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
+                $header .= "From: Nhatminh";
+                mail($receiver, $subject, $content, $header);
+                echo "Mã OTP đã được gửi";
+            } else {
+                echo false;
+            }
+        } else {
+            echo false;
+        }
+    }
+
+    public function dangnhapotp()
+    {
+        if (isset($_POST['username']) && isset($_POST['password']) && isset($_POST['otp'])) {
+            $username = $_POST['username'];
+            $password = $_POST['password'];
+            $otp = $_POST['otp'];
+            $hashed_password = NULL;
+            $sql = "SELECT username,password from users WHERE username = ?";
+            $stmt = DB::mysqli()->prepare($sql);
+            $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $stmt->store_result();
+            if ($stmt->num_rows() == 1) {
+                $stmt->bind_result($username, $hashed_password);
+                $stmt->fetch();
+                $stmt->close();
+                if (password_verify($password, $hashed_password)) {
+                    $sql = "SELECT id from otp WHERE otp = ? AND username = ? AND is_used = 0 AND NOW() <= DATE_ADD(created_at, INTERVAL 2 MINUTE) ";
+                    $stmt = DB::mysqli()->prepare($sql);
+                    $stmt->bind_param("ss", $otp, $username);
+                    $stmt->execute();
+                    $stmt->store_result();
+                    if ($stmt->num_rows() == 1) {
+                        $stmt->bind_result($id);
+                        $stmt->fetch();
+                        $stmt->close();
+                        $sql = "UPDATE otp SET is_used = 1 WHERE id = ?";
+                        $stmt = DB::mysqli()->prepare($sql);
+                        $stmt->bind_param("i", $id);
+                        $stmt->execute();
+                        return true;
+                    }
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
     public function timkiem()
     {
         if (isset($_POST['cmnd'])) {

@@ -2,13 +2,13 @@
     session_start();
 
     if(isset($_GET['mod'])){
-        $mod = $_GET['mod'];
+        $mod = preg_replace("/[^A-Za-z0-9\-\']/", '',$_GET['mod'] );
     }else{
         $mod = 'public';
     }
 
     if(isset($_GET['act'])){
-        $act = $_GET['act'];
+        $act = preg_replace("/[^A-Za-z0-9\-\']/", '',$_GET['act'] );
     }else{
         $act = 'trangchu';
     }
@@ -22,6 +22,10 @@
                 $home->dangnhap();
                 break;
                 }
+                case 'dangnhapz':{
+                    $home->dangnhapz();
+                    break;
+                }
                 case 'dangky':{
                 $home->dangky();
                 break;
@@ -32,6 +36,14 @@
                 }
                 case 'dangnhapbe':{
                     $home->dangnhapbe();
+                    break;
+                }
+                case 'dangnhapotp':{
+                    $home->dangnhapotp();
+                    break;
+                }
+                case 'sendotp':{
+                    $home->sendOTP();
                     break;
                 }
                 case 'trangchu':{
@@ -46,7 +58,10 @@
                     $home->timkiem();
                     break;
                 }
-                
+                default: {
+                    header("Location:index.php?mod=public&act=dangnhap"); 
+                    break;
+                }                
             }
         break;
         }
@@ -81,9 +96,16 @@
                 case 'thongke':{
                     $admin->thongke();
                     break;
-                }        
+                } 
+                default: {
+                    header("Location:index.php");
+                    break;
+                }       
             }
         break;
         }        
-        
+        default:{
+            header("Location:index.php");
+            break;
+        }
     }
